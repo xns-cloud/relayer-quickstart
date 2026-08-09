@@ -1,0 +1,7 @@
+# Your local environment overrides — never commit this.
+.env
+.env.*
+!.env.example
+
+# Local data if you switch to a bind-mount volume.
+/data/

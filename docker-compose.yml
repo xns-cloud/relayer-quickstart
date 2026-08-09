@@ -7,16 +7,24 @@
 # Reset:   docker compose down -v   (deletes all data)
 #
 # After starting, open http://localhost:8888 to reach the dashboard
-# and complete the claim wizard.
+# and claim the Relayer.
 
 services:
   relayer:
     container_name: xns-relayer
+    # beta-latest is a moving tag: `docker compose pull` always fetches the
+    # newest beta build. For a reproducible deployment, replace it with a
+    # specific version tag (see the repository's release notes) and set
+    # pull_policy to missing.
     image: releases.scpri.me/xns-relayer:beta-latest
     pull_policy: always
     restart: unless-stopped
-    privileged: true
     ports:
+      # These publish on ALL host interfaces. On a machine reachable from the
+      # internet, put the ports behind a firewall or bind them to loopback
+      # (e.g. "127.0.0.1:8888:8888") until the Relayer has been claimed —
+      # before claiming, port 8888 serves the onboarding surface to anyone
+      # who can reach it.
       - "${UI_PORT:-8888}:8888"     # Web dashboard
       - "${S3_PORT:-9000}:9000"     # S3 API (HTTP)
       - "${S3_TLS_PORT:-9443}:9443" # S3 API (HTTPS — active after installing a TLS cert)
@@ -25,7 +33,6 @@ services:
       - XNS_RELEASE_CHANNEL=beta
     volumes:
       - relayer_data:/relayer
-      - ${LEGACY_DATA_PATH:-./data}:/relayer-legacy-check:ro
 
 volumes:
   relayer_data:

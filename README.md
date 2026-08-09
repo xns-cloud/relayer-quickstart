@@ -17,22 +17,24 @@ S3 API on port 9000 and a web dashboard on port 8888.
 | Free disk | 10 GB |
 | Free ports | 8888, 9000, 9443 |
 
+You will also need an **xns account** (free to create) to claim the Relayer in
+step 4, and a device with a browser you can sign in on.
+
 ## Quick start
 
-### 1. Create a project directory
+### 1. Get the compose file
 
 ```bash
-mkdir -p ~/xns-relayer
-cd ~/xns-relayer
+git clone https://github.com/xns-cloud/relayer-quickstart.git
+cd relayer-quickstart
 ```
 
-### 2. Save the compose file
+If you would rather not clone, create an empty directory and copy
+[`docker-compose.yml`](docker-compose.yml) into it — that file is all you need.
 
-Download or copy
-[`docker-compose.yml`](docker-compose.yml)
-into `~/xns-relayer`.
+### 2. Optional: change the ports
 
-If you need to change the default ports (8888 / 9000 / 9443), copy
+If 8888, 9000, or 9443 are already in use, copy
 [`.env.example`](.env.example) to `.env` and uncomment the port lines:
 
 ```bash
@@ -51,35 +53,41 @@ The first run downloads the image (a few hundred MB). When it finishes, open
 
 ### 4. Claim your Relayer
 
-On first launch the dashboard presents the **onboarding wizard**. This is the
-step that makes the Relayer yours — it writes the identity credential the
-storage engine needs to operate.
+Claiming connects this Relayer to your xns account. Until it is claimed, the
+Relayer runs but has no owner and storage operations do not persist to the
+network.
 
-1. Open **<http://localhost:8888>**.
-2. The wizard prompts you to **sign in or create an XNS account** (email
-   verification required).
-3. After signing in, the wizard mints a credential and writes it into the
-   container at `/relayer/conf/hostioauth`. This happens automatically — no
-   manual file editing.
-4. Once the credential is written, the dashboard transitions to the
-   **claimed / owned** state. You are now the box owner.
+1. Open **<http://localhost:8888>**. A **"Welcome to your Relayer"** dialog
+   appears with two choices: **Connect to xns** and **I already have an
+   account**.
+2. Click **Connect to xns**. The dialog switches to a panel headed *"Complete
+   this on another device"* and displays a **claim link** plus an expiry time.
+3. **Open that link in a browser where you can sign into your xns account** —
+   the same machine is fine, or copy the link to your phone or laptop. Use the
+   **Copy link** button. Sign in (or create an account) and approve the claim
+   there.
+4. Return to the dashboard. It detects the completed claim on its own and
+   refreshes — **within 15 minutes**, usually within a minute. You do not need
+   to restart the container or reload manually.
 
-> **What just happened?** The onboarding wizard contacted XNS's identity
-> service, obtained a Muse access token for your account, and stored it
-> locally. The Relayer's HostIO process reads this token at startup and uses
-> it as its identity. Without it, the Relayer runs but is unclaimed — storage
-> operations will not persist to the network.
+Once the claim completes, the dashboard leaves the welcome dialog and shows the
+normal owned view. You are the box owner.
+
+> **What just happened?** The claim link ties this Relayer to your xns identity.
+> The dashboard writes the resulting credential into the container so the
+> storage engine can use it as its identity on every subsequent start. There is
+> no file to edit by hand.
 
 ### 5. Verify
 
 | Check | Expected |
 |-------|----------|
-| Dashboard loads at `http://localhost:8888` | Claimed / owned state — not the onboarding wizard |
+| Dashboard loads at `http://localhost:8888` | The owned dashboard — not the "Welcome to your Relayer" dialog |
 | S3 endpoint answers | `curl -s http://localhost:9000` returns an XML response |
 
 Point any S3-compatible client at `http://localhost:9000` to start storing
-objects. The dashboard's **Settings > S3 Credentials** page shows the access
-key and secret key your client needs.
+objects. Generate the access key and secret key your client needs from the
+**IAM** section of the dashboard.
 
 ## Ports
 
@@ -87,9 +95,44 @@ key and secret key your client needs.
 |------|----------|---------|
 | 8888 | HTTP | Web dashboard |
 | 9000 | HTTP | S3 API |
-| 9443 | HTTPS | S3 API (active after installing a TLS certificate via Settings > Certificates) |
+| 9443 | HTTPS | S3 API (active once a TLS certificate is installed) |
 
 All three are configurable through the `.env` file.
+
+> **Exposure.** The compose file publishes these ports on every host interface.
+> That is fine on a laptop or a machine behind a firewall. On a cloud VM with a
+> public IP, restrict them — a firewall rule, or bind to loopback in the compose
+> file (`"127.0.0.1:8888:8888"`) — at least until the Relayer is claimed. Before
+> claiming, anyone who can reach port 8888 sees the claim dialog.
+
+## Storage and disks
+
+This quickstart runs the container **unprivileged**, which is the right default
+for a public, single-command install. Storage lives in a Docker-managed named
+volume (`relayer_data`) and grows into the space available on the Docker host —
+enough to install, claim, and use the S3 API.
+
+Some features need access the container does not have by default:
+
+| Feature | Needs |
+|---------|-------|
+| Attaching and formatting physical disks from the dashboard | `privileged: true` |
+| Cloud Sync (rclone/FUSE mounts) | `/dev/fuse` and `CAP_SYS_ADMIN` |
+| SMB / Windows file shares | additional published ports and capabilities |
+
+If you need those, add the access explicitly to the `relayer` service in
+`docker-compose.yml` — for example:
+
+```yaml
+    privileged: true
+```
+
+and run `docker compose up -d` again. Understand what that grants before you do
+it: a privileged container has effectively root-level access to the host.
+
+If you skip it, nothing crashes. The disk-management pages simply have no
+physical disks to offer, and the sync and share features stay unavailable —
+everything else in the walkthrough above works normally.
 
 ## Updating
 
@@ -98,21 +141,11 @@ docker compose pull
 docker compose up -d
 ```
 
-Your data lives in a Docker-managed volume (`relayer_data`) and survives
-image updates.
+Your data lives in the `relayer_data` volume and survives image updates.
 
-## Upgrading from a bind-mount install
-
-If you previously ran the Relayer with a bind-mount volume
-(`- ./data:/relayer`), the boot guard will detect the existing database and
-refuse to start against an empty named volume. Either:
-
-- **Keep the bind-mount** — change the volume line back to your host path.
-- **Migrate** — copy the bind-mount contents into the `relayer_data` volume
-  while the container is stopped.
-
-If the old install used a custom path (not `./data`), set
-`LEGACY_DATA_PATH=/your/old/path` in your `.env`.
+`beta-latest` is a moving tag — each `pull` fetches the newest beta build. For a
+deployment you want to hold steady, replace the tag in `docker-compose.yml` with
+a specific version and change `pull_policy: always` to `pull_policy: missing`.
 
 ## Stopping and removing
 
@@ -134,6 +167,12 @@ port numbers.
 needed). If you see this, a stale registry login may be cached — run
 `docker logout releases.scpri.me` and retry.
 
+**The claim link expired** — Click **Back**, then **Connect to xns** again to
+mint a fresh link.
+
+**The dashboard still shows the welcome dialog after claiming** — Give it up to
+15 minutes; it polls on its own. If it has not changed by then, reload the page.
+
 **Container won't start or keeps restarting** — Check the logs:
 
 ```bash
@@ -149,6 +188,11 @@ The [relayer-mcp](https://github.com/xns-cloud/relayer-mcp) package lets
 Claude (or any MCP-capable assistant) install and manage the Relayer for you.
 Add it to your assistant and ask it to install the XNS Relayer — it handles
 the setup, account creation, and verification.
+
+## Security
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report it
+privately.
 
 ## License
 
