@@ -164,9 +164,18 @@ docker compose down -v
 
 ## Troubleshooting
 
-**"port is already allocated"** — Another process is using 8888, 9000, or
-9443. Copy `.env.example` to `.env`, uncomment the port lines, and pick free
-port numbers.
+**"address already in use" / "port is already allocated"** — Another process on
+the host is using 8888, 9000, or 9443. Docker reports it as
+`failed to bind host port 0.0.0.0:8888/tcp: address already in use` (older
+versions say "port is already allocated"). Copy `.env.example` to `.env`,
+uncomment the port line for the clashing port, set a free number, and run
+`docker compose up -d` again — the container is recreated on the new port:
+
+```bash
+cp .env.example .env
+# edit .env — e.g. uncomment and set UI_PORT=8890
+docker compose up -d
+```
 
 **"unauthorized" on image pull** — The beta channel is public (no login
 needed). If you see this, a stale registry login may be cached — run
