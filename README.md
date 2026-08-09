@@ -83,11 +83,16 @@ normal owned view. You are the box owner.
 | Check | Expected |
 |-------|----------|
 | Dashboard loads at `http://localhost:8888` | The owned dashboard — not the "Welcome to your Relayer" dialog |
-| S3 endpoint answers | `curl -s http://localhost:9000` returns an XML response |
+| Container is healthy | `docker compose ps` shows `xns-relayer` as `Up` |
+| S3 port is bound | `docker compose ps` lists `0.0.0.0:9000->9000/tcp` |
 
-Point any S3-compatible client at `http://localhost:9000` to start storing
+Then point any S3-compatible client at `http://localhost:9000` to start storing
 objects. Generate the access key and secret key your client needs from the
 **IAM** section of the dashboard.
+
+> The S3 gateway only starts serving once the Relayer is claimed. Before that,
+> port 9000 accepts connections but returns nothing — that is expected, not a
+> fault.
 
 ## Ports
 
