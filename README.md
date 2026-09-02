@@ -4,9 +4,9 @@ Run a self-hosted [XNS Relayer](https://xns.tech) from a single `docker compose 
 The Relayer is an S3-compatible distributed storage gateway — it exposes a standard
 S3 API on port 9000 and a web dashboard on port 8888.
 
-> **Pre-release.** This quickstart pulls from the public beta channel. Images are
-> updated regularly; run `docker compose pull && docker compose up -d` to get the
-> latest build.
+> This quickstart pulls from the production release channel. Images are updated
+> regularly; run `docker compose pull && docker compose up -d` to get the latest
+> build.
 
 ## Requirements
 
@@ -148,9 +148,10 @@ docker compose up -d
 
 Your data lives in the `relayer_data` volume and survives image updates.
 
-`beta-latest` is a moving tag — each `pull` fetches the newest beta build. For a
-deployment you want to hold steady, replace the tag in `docker-compose.yml` with
-a specific version and change `pull_policy: always` to `pull_policy: missing`.
+`release-latest` is a moving tag — each `pull` fetches the newest release build.
+For a deployment you want to hold steady, replace the tag in
+`docker-compose.yml` with a specific version and change `pull_policy: always` to
+`pull_policy: missing`.
 
 ## Stopping and removing
 
@@ -177,7 +178,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-**"unauthorized" on image pull** — The beta channel is public (no login
+**"unauthorized" on image pull** — The release channel is public (no login
 needed). If you see this, a stale registry login may be cached — run
 `docker logout releases.scpri.me` and retry.
 
