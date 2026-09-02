@@ -203,6 +203,13 @@ Claude (or any MCP-capable assistant) install and manage the Relayer for you.
 Add it to your assistant and ask it to install the XNS Relayer — it handles
 the setup, account creation, and verification.
 
+## How XNS compares
+
+[COMPARISON.md](COMPARISON.md) puts XNS next to S3, R2, B2, Wasabi, Storj and
+self-hosted MinIO on list price, egress terms and minimum retention — including
+a section naming where XNS loses. Every figure cites the provider's own source
+and the date it was read.
+
 ## Security
 
 Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report it
