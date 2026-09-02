@@ -135,9 +135,6 @@ Five of the seven use the phrase. They do not mean the same thing.
 - **Self-hosted MinIO is free.** If you already own the hardware, the rack and
   the staff to run it, no hosted price beats $0. What you take on is replication,
   durability engineering, capacity planning and the pager.
-- **Our S3 gateway is pre-release.** This quickstart pulls from the public beta
-  channel. That is the honest state of the software, and it is a reason to test
-  before you commit a workload.
 
 ## Where XNS wins
 
