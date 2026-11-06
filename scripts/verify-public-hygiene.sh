@@ -101,10 +101,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Compose points at the public beta channel, not the device-build channel.
+# 4. Compose points at the public release channel, not the device-build channel.
 #    (HANDOFF Risk Flag 2 — getting this wrong makes AC1 fail outright.)
 # ---------------------------------------------------------------------------
-head_check "Compose image is the public beta channel (AC1 / Risk Flag 2)"
+head_check "Compose image is the public release channel (AC1 / Risk Flag 2)"
 COMPOSE=""
 for c in docker-compose.yml docker-compose.yaml compose.yml compose.yaml; do
   [ -f "$c" ] && COMPOSE="$c" && break
@@ -112,10 +112,10 @@ done
 if [ -z "$COMPOSE" ]; then
   fail "no compose file found at repo root"
 else
-  if grep -qE '^[[:space:]]*image:[[:space:]]*releases\.scpri\.me/xns-relayer:beta-latest[[:space:]]*$' "$COMPOSE"; then
-    pass "$COMPOSE image is releases.scpri.me/xns-relayer:beta-latest"
+  if grep -qE '^[[:space:]]*image:[[:space:]]*releases\.scpri\.me/xns-relayer:release-latest[[:space:]]*$' "$COMPOSE"; then
+    pass "$COMPOSE image is releases.scpri.me/xns-relayer:release-latest"
   else
-    fail "$COMPOSE does not declare releases.scpri.me/xns-relayer:beta-latest. Found:"
+    fail "$COMPOSE does not declare releases.scpri.me/xns-relayer:release-latest. Found:"
     grep -nE '^[[:space:]]*image:' "$COMPOSE" | sed 's|^|        |' || true
   fi
 

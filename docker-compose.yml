@@ -12,11 +12,11 @@
 services:
   relayer:
     container_name: xns-relayer
-    # beta-latest is a moving tag: `docker compose pull` always fetches the
-    # newest beta build. For a reproducible deployment, replace it with a
-    # specific version tag (see the repository's release notes) and set
-    # pull_policy to missing.
-    image: releases.scpri.me/xns-relayer:beta-latest
+    # release-latest is the production channel, and it is a moving tag:
+    # `docker compose pull` always fetches the newest release build. For a
+    # reproducible deployment, replace it with a specific version tag (see the
+    # repository's release notes) and set pull_policy to missing.
+    image: releases.scpri.me/xns-relayer:release-latest
     pull_policy: always
     restart: unless-stopped
     ports:
@@ -30,7 +30,7 @@ services:
       - "${S3_TLS_PORT:-9443}:9443" # S3 API (HTTPS — active after installing a TLS cert)
     environment:
       - NODE_ENV=production
-      - XNS_RELEASE_CHANNEL=beta
+      - XNS_RELEASE_CHANNEL=release
     volumes:
       - relayer_data:/relayer
 

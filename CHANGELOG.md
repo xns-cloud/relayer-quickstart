@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1] — 2026-11-06
+
+- The compose file pulls the production release channel
+  (`releases.scpri.me/xns-relayer:release-latest`) instead of beta, which stopped
+  updating at 2.20.0. The README no longer calls the quickstart pre-release.
+- `COMPARISON.md` — XNS against S3, R2, B2, Wasabi, Storj and MinIO.
+- `scripts/verify-public-hygiene.sh` checks for the release channel.
+
 ## [0.1.0] — 2026-08-09
 
 Initial release of the XNS Relayer quickstart.
